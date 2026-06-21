@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B-Ağacı / B+Ağacı — Fayl Sistemi Simulyasiyası</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="ledger-strip">
+  <span>LAYIHƏ № 8 — VERİLƏNLƏRİN STRUKTURU VƏ ALQORİTMLƏR</span>
+  <span class="mono">B-TREE / B+TREE — DISK FAYL SİSTEMİ SİMULYASİYASI</span>
+</div>
+
+<header class="hero">
+  <div class="kicker">Kataloq Sistemi <span class="sep">/</span> Disk-Əsaslı İndeksləmə</div>
+  <h1 class="title">B-Ağacı <span style="color:var(--muted)">&</span> B<span class="plus">+</span>-Ağacı<br>
+    <span class="acc">Fayl Sistemi</span> Simulyasiyası</h1>
+  <p class="lede">Kitabxana kataloq siyirməsi kimi düşün: hər siyirmə (node) bir neçə kart (açar) tutur. Siyirmə dolanda, o iki yeni siyirməyə bölünür — məhz buna görə B-Ağacı disk-əsaslı sistemlər üçün idealdır.</p>
+  <p class="lede mono" style="font-size:13px;color:var(--muted-2)">Bütün alqoritm sıfırdan yazılıb — heç bir hazır kitabxana istifadə olunmayıb.</p>
+
+  <div class="drawer-stage" aria-hidden="true">
+    <div class="card c1"><span class="idx">07</span><span class="ln"></span></div>
+    <div class="card c2"><span class="idx">23</span><span class="ln"></span></div>
+    <div class="card c3"><span class="idx">41</span><span class="ln"></span></div>
+    <div class="card c4"><span class="idx">15</span><span class="ln"></span></div>
+    <div class="card c5"><span class="idx">38</span><span class="ln"></span></div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="wrap">
+    <button class="active" data-tab="teori"><span class="idx">01</span>Nəzəri Əsas</button>
+    <button data-tab="demo"><span class="idx">02</span>Canlı Demo</button>
+    <button data-tab="muqayise"><span class="idx">03</span>Müqayisəli Analiz</button>
+    <button data-tab="benchmark"><span class="idx">04</span>Benchmark</button>
+    <button data-tab="netice"><span class="idx">05</span>Nəticə</button>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ================= 01 NƏZƏRİ ƏSAS ================= -->
+  <section class="panel-view active" id="teori">
+    <div class="section-label">01 — Nəzəri Əsas</div>
+    <h2 class="h-title">Struktur necə işləyir</h2>
+
+    <div class="card-block">
+      <h3>Niyə B-Ağacı?</h3>
+      <p>Adi ikili axtarış ağacında (BST) hər node yalnız <strong>1 açar</strong> saxlayır. Bu, ağacı çox "hündür" edir — disk üzərində hər node oxunması bir <strong>disk I/O əməliyyatı</strong> deməkdir, və disk I/O çox bahalıdır.</p>
+      <p>B-Ağacı bunun əksinə hər node-da <strong>bir neçə açar</strong> (dərəcə — t parametri ilə tənzimlənir) saxlayır. Bu, ağacı "yastı" və "enli" edir → daha az səviyyə → daha az disk oxunması.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card-block">
+        <h3>Dərəcə (t) qaydaları</h3>
+        <ul>
+          <li>Hər node-da ən çox <strong class="mono">2t − 1</strong> açar</li>
+          <li>Hər node-da ən az <strong class="mono">t − 1</strong> açar (kök istisna)</li>
+          <li>Açarlar həmişə artan sırada</li>
+          <li>Hər (n+1) açarlı node-un n+1 övladı var</li>
+        </ul>
+      </div>
+      <div class="card-block">
+        <h3>Vaxt Mürəkkəbliyi</h3>
+        <div class="formula">Axtarış:&nbsp; O(log<sub>t</sub> n)</div>
+        <div class="formula">Əlavə etmə:&nbsp; O(log<sub>t</sub> n)</div>
+        <div class="formula">Silmə:&nbsp; O(log<sub>t</sub> n)</div>
+        <p>n = açar sayı. Hündürlük təxminən <span class="mono">log<sub>t</sub>((n+1)/2)</span> ilə hesablanır — t böyüdükcə hündürlük azalır.</p>
+      </div>
+    </div>
+
+    <div class="card-block">
+      <h3>Yaddaş (Space) Mürəkkəbliyi</h3>
+      <p>Hər node ən çox <span class="mono">2t−1</span> açar + <span class="mono">2t</span> göstərici (pointer) saxlayır. n açar üçün ümumi node sayı <span class="mono">O(n/t)</span>-dir, ona görə ümumi yaddaş <span class="mono">O(n)</span> qalır — t-dən asılı olmayaraq xətti böyüyür, sadəcə "neçə node-a" bölündüyü dəyişir.</p>
+    </div>
+
+    <div class="card-block">
+      <h3>B+ Ağacı — fərq nədədir?</h3>
+      <p>B+ Ağacında <strong>bütün dəyərlər yalnız yarpaqlarda</strong> saxlanılır, daxili node-lar sadəcə "yol göstərici"dir. Yarpaqlar öz aralarında zəncirlə bağlıdır.</p>
+      <p>Nəticə: <strong>aralıq sorğusu (range query)</strong> çox sürətlidir — bir dəfə ilk yarpağı tapdıqdan sonra zəncirlə sağa gedə-gedə bütün aralığı O(k) vaxtında oxuyursan (k = nəticə sayı). Buna görə MySQL, PostgreSQL kimi VBİS-lər B+ Ağacından istifadə edir.</p>
+    </div>
+  </section>
+
+  <!-- ================= 02 CANLI DEMO ================= -->
+  <section class="panel-view" id="demo">
+    <div class="section-label">02 — Canlı Demo</div>
+    <h2 class="h-title">İnteraktiv vizuallaşdırma</h2>
+    <p style="color:var(--muted);font-size:14.5px;margin-top:-8px">Açar əlavə et, axtar və ya sil — kataloq siyirmələrinin necə bölündüyünü canlı izlə.</p>
+
+    <div class="toolbar">
+      <div class="group">
+        <span class="label">Açar</span>
+        <input type="number" id="keyInput" placeholder="məs. 42" />
+        <button class="tb btn-primary" id="insertBtn">Əlavə et</button>
+        <button class="tb btn-search" id="searchBtn">Axtar</button>
+        <button class="tb btn-danger" id="deleteBtn">Sil</button>
+      </div>
+      <div class="group">
+        <span class="label">Struktur</span>
+        <div class="seg" id="modeSeg">
+          <button data-mode="btree" class="active">B-Ağacı</button>
+          <button data-mode="bplus">B+-Ağacı</button>
+        </div>
+      </div>
+      <div class="group">
+        <span class="label">Dərəcə (t)</span>
+        <select id="degreeSelect">
+          <option value="2" selected>t = 2 (max 3 açar)</option>
+          <option value="3">t = 3 (max 5 açar)</option>
+          <option value="4">t = 4 (max 7 açar)</option>
+          <option value="5">t = 5 (max 9 açar)</option>
+        </select>
+      </div>
+      <div class="group" id="rangeGroup">
+        <span class="label">Aralıq</span>
+        <input type="number" id="rangeLow" placeholder="alt" />
+        <input type="number" id="rangeHigh" placeholder="üst" />
+        <button class="tb btn-search" id="rangeBtn">Aralığı tap</button>
+      </div>
+      <div class="group" style="margin-left:auto">
+        <button class="tb btn-ghost" id="randomBtn">+10 təsadüfi</button>
+        <button class="tb btn-ghost" id="clearBtn">Təmizlə</button>
+      </div>
+    </div>
+
+    <div class="statusbar">
+      <div id="message">Başlamaq üçün açar əlavə et.</div>
+      <div class="stats">
+        <span>Açarlar: <b id="statCount">0</b></span>
+        <span>Hündürlük: <b id="statHeight">1</b></span>
+        <span>Node sayı: <b id="statNodes">1</b></span>
+      </div>
+    </div>
+
+    <div class="canvas-wrap" id="canvasWrap">
+      <svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:var(--internal)"></span>Daxili node (siyirmə yol göstəricisi)</span>
+      <span><span class="dot" style="background:var(--leaf)"></span>Yarpaq (kart saxlanılan yer)</span>
+      <span><span class="dot" style="background:var(--found)"></span>Tapılan / vurğulanan açar</span>
+      <span style="margin-left:auto;color:var(--muted-2)">B+-Ağacında yarpaqlar bir-birinə bağlıdır (kəsik xətt)</span>
+    </div>
+  </section>
+
+  <!-- ================= 03 MÜQAYİSƏLİ ANALİZ ================= -->
+  <section class="panel-view" id="muqayise">
+    <div class="section-label">03 — Müqayisəli Analiz</div>
+    <h2 class="h-title">Bizim realizasiya vs hazır kitabxanalar</h2>
+
+    <div class="card-block">
+      <table class="cmp">
+        <tr><th>Xüsusiyyət</th><th>Bizim B-Ağacı (sıfırdan)</th><th>Python <span class="mono">bisect</span> + list</th><th>C++ <span class="mono">std::map</span> (qırmızı-qara ağac)</th></tr>
+        <tr><td>Node tutumu</td><td class="good">Çoxlu açar (dərəcə t)</td><td>—  (tək sıralı massiv)</td><td class="bad">1 açar / node</td></tr>
+        <tr><td>Axtarış</td><td>O(log<sub>t</sub> n)</td><td class="good">O(log₂ n) — sürətli binar axtarış</td><td>O(log₂ n)</td></tr>
+        <tr><td>Əlavə etmə</td><td>O(log<sub>t</sub> n)</td><td class="bad">O(n) — massivin ortasına qoymaq baha başa gəlir</td><td>O(log₂ n)</td></tr>
+        <tr><td>Disk-üçün uyğunluq</td><td class="good">Əla — az səviyyə, az I/O</td><td class="bad">Uyğun deyil</td><td class="bad">Çox node, çox I/O</td></tr>
+        <tr><td>Aralıq sorğusu (B+ variantı)</td><td class="good">O(log n + k) — yarpaq zənciri ilə</td><td>O(log n + k)</td><td>O(log n + k)</td></tr>
+        <tr><td>Yaddaş overhead-i</td><td>Az (sıx node-lar)</td><td class="good">Minimal</td><td class="bad">Hər node üçün əlavə pointer-lər</td></tr>
+      </table>
+    </div>
+
+    <div class="grid-2">
+      <div class="card-block">
+        <h3>Niyə bisect daha sürətli görünür?</h3>
+        <p>Python-un <span class="mono">bisect</span> modulu C dilində yazılıb və yaddaşda ardıcıl (cache-friendly) saxlanılır — kiçik N üçün çox sürətlidir. Amma <strong>əlavə etmə zamanı</strong> massivin ortasına element qoymaq O(n) tələb edir, böyük N-də bu, B-Ağacından qat-qat geri qalır (benchmark bölməsinə bax).</p>
+      </div>
+      <div class="card-block">
+        <h3>Niyə real DB-lər B-Ağacı istifadə edir?</h3>
+        <p>Verilənlər bazaları (MySQL, PostgreSQL, SQLite) açarları <strong>diskdə</strong> saxlayır, RAM-da yox. Hər node oxunması bir disk bloku oxumaq deməkdir. B-Ağacının "geniş, az səviyyəli" forması disk oxunma sayını minimuma endirir — bu, std::map kimi "hündür, nazik" strukturlardan qat-qat üstündür.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 04 BENCHMARK ================= -->
+  <section class="panel-view" id="benchmark">
+    <div class="section-label">04 — Benchmark Nəticələri</div>
+    <h2 class="h-title">Empirik ölçmələr</h2>
+    <p style="color:var(--muted);font-size:14.5px;margin-top:-8px">Aşağıdaki qrafiklər Python skripti ilə əvvəlcədən hazırlanıb. İstəsən, hər testi öz rəqəmlərinlə birbaşa bu səhifədə (brauzerdə) də işlədə bilərsən — heç bir Python lazım deyil.</p>
+
+    <div class="card-block">
+      <h3>Test 1 — Dərəcənin (t) hündürlüyə təsiri</h3>
+      <p>5000 təsadüfi açar üçün, t böyüdükcə ağacın hündürlüyü necə azalır:</p>
+      <img class="bench-img" src="assets/qraf_derece_hundurluk.png" alt="Dərəcə vs hündürlük qrafiki">
+      <p class="bench-cap">Nəticə: t = 2-dən t = 32-yə qədər hündürlük kəskin azalır — bu, niyə disk sistemlərinin böyük t (məs. 100+) seçdiyini izah edir.</p>
+
+      <div class="bench-live">
+        <div class="bench-live-head">Canlı test (brauzerdə) <span class="bench-live-tag">JS</span></div>
+        <div class="bench-controls">
+          <div class="group">
+            <span class="label">t dəyərləri</span>
+            <input type="text" id="b1_t" value="2,3,4,5,8,10,16,32">
+          </div>
+          <div class="group">
+            <span class="label">Açar sayı</span>
+            <input type="number" id="b1_n" value="3000">
+          </div>
+          <button class="tb btn-primary" id="b1_run">Testi apar</button>
+        </div>
+        <div class="bench-status" id="b1_status">Düymə basıb nəticəni gör.</div>
+        <svg id="b1_svg" class="bench-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+
+    <div class="card-block">
+      <h3>Test 2 — Miqyas testi (N böyüdükcə vaxt)</h3>
+      <img class="bench-img" src="assets/qraf_miqyas.png" alt="Miqyas testi qrafiki">
+      <p class="bench-cap">Bizim B-Ağacı ilə Python-un <span class="mono">bisect.insort</span> (sıralı list-ə əlavə) müqayisəsi. N böyüdükcə fərq aydın görünür.</p>
+
+      <div class="bench-live">
+        <div class="bench-live-head">Canlı test (brauzerdə) <span class="bench-live-tag">JS</span></div>
+        <div class="bench-controls">
+          <div class="group">
+            <span class="label">N dəyərləri</span>
+            <input type="text" id="b2_n" value="500,1000,2000,4000,8000">
+          </div>
+          <button class="tb btn-primary" id="b2_run">Testi apar</button>
+        </div>
+        <div class="bench-status" id="b2_status">Düymə basıb nəticəni gör.</div>
+        <svg id="b2_svg" class="bench-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+
+    <div class="card-block">
+      <h3>Test 3 — Axtarış sürəti</h3>
+      <img class="bench-img" src="assets/qraf_axtaris.png" alt="Axtarış müqayisəsi qrafiki">
+      <p class="bench-cap">20,000 açar üzərində 2000 axtarış əməliyyatının müqayisəsi.</p>
+
+      <div class="bench-live">
+        <div class="bench-live-head">Canlı test (brauzerdə) <span class="bench-live-tag">JS</span></div>
+        <div class="bench-controls">
+          <div class="group">
+            <span class="label">Açar sayı (N)</span>
+            <input type="number" id="b3_n" value="5000">
+          </div>
+          <div class="group">
+            <span class="label">Axtarış sayı</span>
+            <input type="number" id="b3_k" value="500">
+          </div>
+          <button class="tb btn-primary" id="b3_run">Testi apar</button>
+        </div>
+        <div class="bench-status" id="b3_status">Düymə basıb nəticəni gör.</div>
+        <svg id="b3_svg" class="bench-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 05 NƏTİCƏ ================= -->
+  <section class="panel-view" id="netice">
+    <div class="section-label">05 — Nəticə</div>
+    <h2 class="h-title">Mühəndislik tövsiyələri</h2>
+
+    <div class="card-block">
+      <h3>Bu strukturu nə vaxt istifadə etmək lazımdır?</h3>
+      <ul>
+        <li><strong>Fayl sistemləri və verilənlər bazaları</strong> — disk-əsaslı saxlama olduğu üçün B/B+ Ağacı standart seçimdir (NTFS, ext4, MySQL InnoDB).</li>
+        <li><strong>Tez-tez aralıq sorğusu olan sistemlər</strong> (məs. "10-dan 50-yə qədər olan bütün sifarişlər") — B+ Ağacı seçilməlidir.</li>
+        <li><strong>Yalnız RAM-da işləyən, kiçik N olan tətbiqlər</strong> — Python <span class="mono">dict</span>/hash cədvəli və ya <span class="mono">bisect</span> daha sadə və kifayət qədər sürətlidir.</li>
+        <li><strong>Çox tez-tez yazma/silmə olan amma az oxuma olan ssenarilər</strong> — hash cədvəli daha yaxşı seçim ola bilər (B-Ağacı O(log n), hash O(1)).</li>
+      </ul>
+    </div>
+
+    <div class="card-block">
+      <h3>Layihənin töhfəsi</h3>
+      <p>Bu layihədə B-Ağacı və B+ Ağacı sıfırdan (heç bir hazır kitabxana olmadan) realizə olunub, dərəcənin (t) performansa təsiri empirik ölçülüb, və nəticələr Python-un standart alternativləri ilə müqayisə edilib. Əlavə olaraq, B+ Ağacının yarpaq-zənciri arxitekturası ilə aralıq sorğusu funksionallığı tətbiq edilib.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>Müəllim: Kamran Nemətov | Hazırladı: Nəzrin Şərifli &copy; 2026</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
