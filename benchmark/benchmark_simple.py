@@ -110,9 +110,9 @@ def test_miqyas():
         label="Sirali list (bisect.insort)",
         color="#e0455e",
     )
-    plt.xlabel("Acar sayi (N)")
-    plt.ylabel("Vaxt (saniye)")
-    plt.title("Elave etme vaxti: B-Agaci vs sirali list")
+    plt.xlabel("Açar sayı (N)")
+    plt.ylabel("Vaxt (sayı)")
+    plt.title("Əlavə etmə vaxtı: B-Ağacı vs sıralı list")
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
