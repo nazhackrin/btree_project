@@ -22,9 +22,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 import btree_simple as bt
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-
 
 DOCS_QOVLUGU = os.path.join(os.path.dirname(__file__), "..", "docs")
 
@@ -56,7 +56,7 @@ def test_derece_hundurluk():
     plt.figure(figsize=(7, 5))
     plt.plot(deyreceler, hunduruklery, marker="o", color="#4458d4")
     plt.xlabel("Dərəcə (t)")
-    plt.ylabel("Agacin hundurluyu")
+    plt.ylabel("Ağacın hündürlüyü")
     plt.title("Dərəcənin hündürlüyə təsiri (5000 acar)")
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
@@ -100,8 +100,16 @@ def test_miqyas():
         i += 1
 
     plt.figure(figsize=(7, 5))
-    plt.plot(olculer, btree_vaxtlari, marker="o", label="Bizim B-Agaci", color="#0e9f6e")
-    plt.plot(olculer, list_vaxtlari, marker="s", label="Sirali list (bisect.insort)", color="#e0455e")
+    plt.plot(
+        olculer, btree_vaxtlari, marker="o", label="Bizim B-Agaci", color="#0e9f6e"
+    )
+    plt.plot(
+        olculer,
+        list_vaxtlari,
+        marker="s",
+        label="Sirali list (bisect.insort)",
+        color="#e0455e",
+    )
     plt.xlabel("Acar sayi (N)")
     plt.ylabel("Vaxt (saniye)")
     plt.title("Elave etme vaxti: B-Agaci vs sirali list")
@@ -146,9 +154,11 @@ def test_axtaris():
     bisect_vaxt = time.time() - basla
 
     plt.figure(figsize=(6, 5))
-    plt.bar(["Bizim B-Agaci", "bisect (Python kitabxanasi)"],
-            [btree_vaxt, bisect_vaxt],
-            color=["#0e9f6e", "#4458d4"])
+    plt.bar(
+        ["Bizim B-Agaci", "bisect (Python kitabxanasi)"],
+        [btree_vaxt, bisect_vaxt],
+        color=["#0e9f6e", "#4458d4"],
+    )
     plt.ylabel("Vaxt (saniye) -- 2000 axtaris")
     plt.title(f"Axtaris suretinin muqayisesi (N={n})")
     plt.tight_layout()
